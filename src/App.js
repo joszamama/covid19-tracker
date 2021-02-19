@@ -11,7 +11,8 @@ import InfoBox from "./components/InfoBox";
 import Map from "./components/Map";
 import Table from "./components/Table";
 import LineGraph from "./components/LineGraph";
-import { sortData } from "./includes/utilities/functions";
+import { sortData, prettyPrintStat } from "./includes/utilities/functions";
+import "leaflet/dist/leaflet.css";
 
 function App() {
   // State =  How to write a variable in REACT
@@ -20,6 +21,10 @@ function App() {
   const [casesType, setCasesType] = useState("cases");
   const [countryInfo, setCountryInfo] = useState({});
   const [tableData, setTableData] = useState([]);
+  const [mapCenter, setMapCenter] = useState([30.0, 0.0]);
+  const [zoom, setZoom] = useState(2);
+  const [mapCountries, setMapCountries] = useState([]);
+  const [isLoading, setLoading] = useState(false);
 
   //UseEfect = Runs a piece of code base on a given condition
   useEffect(() => {
@@ -34,13 +39,13 @@ function App() {
 
           const sortedData = sortData(data);
           setTableData(sortedData);
-
+          setMapCountries(data);
           setCountries(countries);
         });
     };
 
     getCountries();
-  }, [countries]);
+  }, []);
 
   useEffect(() => {
     fetch("https://disease.sh/v3/covid-19/all")
@@ -51,8 +56,9 @@ function App() {
   }, []);
 
   const onCountryChange = async (event) => {
+    setLoading(true);
     const countryCode = event.target.value;
-
+    setCountry(countryCode);
     // https://disease.sh/v3/covid-19/all
     // https://disease.sh/v3/covid-19/countries/{country}
 
@@ -66,6 +72,13 @@ function App() {
       .then((data) => {
         setCountry(countryCode);
         setCountryInfo(data);
+
+        setLoading(false);
+        // console.log([data.countryInfo.lat, data.countryInfo.long]);
+        countryCode === "worldwide"
+          ? setMapCenter([34.80746, -40.4796])
+          : setMapCenter([data.countryInfo.lat, data.countryInfo.long]);
+        setZoom(4);
       });
   };
 
@@ -102,30 +115,43 @@ function App() {
         <div className="app__stats">
           {/* C19 Cases infobox */}
           <InfoBox
+            isRed
+            active={casesType === "cases"}
+            className="infoBox__cases"
+            onClick={(e) => setCasesType("cases")}
             title="Coronavirus Cases"
-            newCases={countryInfo.todayCases}
-            totalCases={countryInfo.cases}
-          ></InfoBox>
-
-          {/* Recovered infobox */}
+            total={prettyPrintStat(countryInfo.cases)}
+            cases={prettyPrintStat(countryInfo.todayCases)}
+            isloading={isLoading}
+          />
           <InfoBox
-            title="Recovered Cases"
-            newCases={countryInfo.todayRecovered}
-            totalCases={countryInfo.recovered}
-          ></InfoBox>
-
-          {/* Deaths infobox */}
+            active={casesType === "recovered"}
+            className="infoBox__recovered"
+            onClick={(e) => setCasesType("recovered")}
+            title="Recovered"
+            total={prettyPrintStat(countryInfo.recovered)}
+            cases={prettyPrintStat(countryInfo.todayRecovered)}
+            isloading={isLoading}
+          />
           <InfoBox
-            title="Death Cases"
-            newCases={countryInfo.todayDeaths}
-            totalCases={countryInfo.deaths}
-          ></InfoBox>
+            isGrey
+            active={casesType === "deaths"}
+            className="infoBox__deaths"
+            onClick={(e) => setCasesType("deaths")}
+            title="Deaths"
+            total={prettyPrintStat(countryInfo.deaths)}
+            cases={prettyPrintStat(countryInfo.todayDeaths)}
+            isloading={isLoading}
+          />
         </div>
 
         {/* Map */}
-        <div className="app__map">
-          <Map></Map>
-        </div>
+
+        <Map countries={mapCountries}
+          center={mapCenter}
+          zoom={zoom}
+          casesType={casesType}></Map>
+
       </div>
 
       <Card className="app__right">
@@ -137,15 +163,7 @@ function App() {
           <div className="app__graphsettings">
             <h3>Worldwide</h3>
             <FormControl className="app__graphdropdown">
-              <Select
-                value={casesType}
-                onChange={onCasesTypeChange}
-                variant="outlined"
-              >
-                <MenuItem value="cases">Cases</MenuItem>
-                <MenuItem value="recovered">Recovered</MenuItem>
-                <MenuItem value="deaths">Deaths</MenuItem>
-              </Select>
+             
             </FormControl>
           </div>
           {/* Graph */}
