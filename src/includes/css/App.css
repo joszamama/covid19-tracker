@@ -28,9 +28,28 @@ body {
   justify-content: space-between;
 }
 
-.app__graphsettings {
+.app__right {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
+}
+
+.app__tableTitle {
+  align-self: center;
+}
+.app__graphTitle {
+  margin-top: 10px;
+  margin-bottom: 10px;
+  align-self: center;
+}
+
+.app__right .MuiCardContent-root {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+.app__graph {
+  flex-grow: 1;
 }
 
 @media (max-width: 800px) {

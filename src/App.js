@@ -35,6 +35,7 @@ function App() {
           const countries = data.map((country) => ({
             name: country.country, // United States, United Kingdom, ...
             value: country.countryInfo.iso2, // USA, UK, ...
+            flag: country.countryInfo.flag
           }));
 
           const sortedData = sortData(data);
@@ -59,8 +60,6 @@ function App() {
     setLoading(true);
     const countryCode = event.target.value;
     setCountry(countryCode);
-    // https://disease.sh/v3/covid-19/all
-    // https://disease.sh/v3/covid-19/countries/{country}
 
     const url =
       countryCode == "worldwide"
@@ -74,7 +73,6 @@ function App() {
         setCountryInfo(data);
 
         setLoading(false);
-        // console.log([data.countryInfo.lat, data.countryInfo.long]);
         countryCode === "worldwide"
           ? setMapCenter([34.80746, -40.4796])
           : setMapCenter([data.countryInfo.lat, data.countryInfo.long]);
@@ -86,7 +84,7 @@ function App() {
     const casesType = event.target.value;
 
     setCasesType(casesType);
-    console.log(casesType);
+
   };
 
   return (
@@ -157,17 +155,14 @@ function App() {
       <Card className="app__right">
         <CardContent>
           {/* Cases by country Table */}
-          <h3>Live Cases by Country</h3>
+          <h3 className="app__tableTitle">Top countries (in cases)</h3>
           <Table countries={tableData}></Table>
 
-          <div className="app__graphsettings">
-            <h3>Worldwide</h3>
-            <FormControl className="app__graphdropdown">
-             
-            </FormControl>
-          </div>
+
+          <h3 className="app__graphTitle">{country} Stats: {casesType}</h3>
+
           {/* Graph */}
-          <LineGraph casesType={casesType}></LineGraph>
+          <LineGraph className="app__graph" casesType={casesType} countryCode={country}></LineGraph>
         </CardContent>
       </Card>
     </div>
